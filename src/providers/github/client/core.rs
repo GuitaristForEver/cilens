@@ -123,6 +123,57 @@ impl GitHubClient {
 
         Ok(workflow_response.workflow_runs)
     }
+
+    /// Fetches jobs for a specific workflow run.
+    ///
+    /// # Arguments
+    /// * `owner` - Repository owner (user or organization)
+    /// * `repo` - Repository name
+    /// * `run_id` - Workflow run ID
+    ///
+    /// # Errors
+    /// Returns an error if the HTTP request fails or the response cannot be parsed.
+    pub async fn fetch_jobs(
+        &self,
+        owner: &str,
+        repo: &str,
+        run_id: u64,
+    ) -> Result<Vec<JobData>> {
+        let url = self
+            .base_url
+            .join(&format!("repos/{owner}/{repo}/actions/runs/{run_id}/jobs"))
+            .map_err(|e| {
+                crate::error::CILensError::Config(format!("Failed to build URL: {e}"))
+            })?;
+
+        let mut request = self
+            .client
+            .get(url.as_str())
+            .header("Accept", "application/vnd.github+json")
+            .header("User-Agent", "cilens");
+
+        if let Some(auth) = self.auth_header() {
+            request = request.header("Authorization", auth);
+        }
+
+        let response = request.send().await.map_err(|e| {
+            crate::error::CILensError::GitHubApi(format!("Failed to fetch jobs: {e}"))
+        })?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(crate::error::CILensError::GitHubApi(format!(
+                "GitHub API error {status}: {body}"
+            )));
+        }
+
+        let jobs_response: JobsResponse = response.json().await.map_err(|e| {
+            crate::error::CILensError::GitHubApi(format!("Failed to parse response: {e}"))
+        })?;
+
+        Ok(jobs_response.jobs)
+    }
 }
 
 /// Response from GitHub API /repos/{owner}/{repo}/actions/runs endpoint.
@@ -141,6 +192,23 @@ pub struct WorkflowRunData {
     pub conclusion: Option<String>,
     pub run_started_at: Option<String>,
     pub updated_at: String,
+}
+
+/// Response from GitHub API /repos/{owner}/{repo}/actions/runs/{run_id}/jobs endpoint.
+#[derive(Debug, Deserialize, Serialize)]
+struct JobsResponse {
+    jobs: Vec<JobData>,
+}
+
+/// Data for a single job from GitHub API.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct JobData {
+    pub id: u64,
+    pub name: String,
+    pub status: String,
+    pub conclusion: Option<String>,
+    pub started_at: Option<String>,
+    pub completed_at: Option<String>,
 }
 
 #[cfg(test)]
@@ -234,6 +302,50 @@ mod tests {
             .await;
 
         // This test will fail to compile until we implement fetch_workflow_runs
+        assert!(result.is_ok() || result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_parse_jobs_response() {
+        let json = r#"{
+            "jobs": [
+                {
+                    "id": 123456789,
+                    "name": "build",
+                    "status": "completed",
+                    "conclusion": "success",
+                    "started_at": "2024-01-15T10:30:00Z",
+                    "completed_at": "2024-01-15T10:35:00Z"
+                },
+                {
+                    "id": 987654321,
+                    "name": "test",
+                    "status": "completed",
+                    "conclusion": "failure",
+                    "started_at": "2024-01-15T10:30:00Z",
+                    "completed_at": "2024-01-15T10:40:00Z"
+                }
+            ]
+        }"#;
+
+        let response: JobsResponse = serde_json::from_str(json).unwrap();
+
+        assert_eq!(response.jobs.len(), 2);
+        assert_eq!(response.jobs[0].id, 123456789);
+        assert_eq!(response.jobs[0].name, "build");
+        assert_eq!(response.jobs[0].status, "completed");
+        assert_eq!(response.jobs[0].conclusion, Some("success".to_string()));
+        assert_eq!(response.jobs[1].id, 987654321);
+        assert_eq!(response.jobs[1].name, "test");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_jobs_method_exists() {
+        let client = GitHubClient::new("https://api.github.com", None).unwrap();
+
+        let result = client.fetch_jobs("owner", "repo", 123).await;
+
+        // This test will fail to compile until we implement fetch_jobs
         assert!(result.is_ok() || result.is_err());
     }
 }
