@@ -1,9 +1,10 @@
 mod provider;
 mod types;
-mod client;
+pub mod client;
 
 pub use provider::GitHubProvider;
 pub use types::{GitHubWorkflowRun, GitHubJob};
+pub use client::{GitHubClient, WorkflowRunData};
 
 #[cfg(test)]
 mod tests {
