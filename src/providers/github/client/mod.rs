@@ -1,3 +1,3 @@
 mod core;
 
-pub use core::{GitHubClient, JobData, WorkflowRunData};
+pub use core::{GitHubClient, WorkflowRunData};

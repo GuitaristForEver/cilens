@@ -4,8 +4,6 @@ mod cache;
 pub mod client;
 
 pub use provider::GitHubProvider;
-pub use types::{GitHubWorkflowRun, GitHubJob};
-pub use client::{GitHubClient, WorkflowRunData};
 pub use cache::JobCache;
 
 #[cfg(test)]

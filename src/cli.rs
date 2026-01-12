@@ -384,8 +384,7 @@ impl Cli {
                 let parts: Vec<&str> = repo_path.split('/').collect();
                 if parts.len() != 2 {
                     return Err(anyhow::anyhow!(
-                        "Invalid repo_path format. Expected 'owner/repo', got: {}",
-                        repo_path
+                        "Invalid repo_path format. Expected 'owner/repo', got: {repo_path}"
                     ));
                 }
                 let owner = parts[0];
@@ -453,7 +452,7 @@ mod tests {
                 assert!(!no_cache);
                 assert!(!clear_cache);
             }
-            _ => panic!("Expected Github command variant"),
+            Commands::Gitlab { .. } => panic!("Expected Github command variant"),
         }
     }
 }

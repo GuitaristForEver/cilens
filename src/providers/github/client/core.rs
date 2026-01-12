@@ -284,12 +284,12 @@ mod tests {
         let response: WorkflowRunsResponse = serde_json::from_str(json).unwrap();
 
         assert_eq!(response.workflow_runs.len(), 2);
-        assert_eq!(response.workflow_runs[0].id, 123456789);
+        assert_eq!(response.workflow_runs[0].id, 123_456_789);
         assert_eq!(response.workflow_runs[0].head_branch, Some("main".to_string()));
         assert_eq!(response.workflow_runs[0].event, "push");
         assert_eq!(response.workflow_runs[0].status, "completed");
         assert_eq!(response.workflow_runs[0].conclusion, Some("success".to_string()));
-        assert_eq!(response.workflow_runs[1].id, 987654321);
+        assert_eq!(response.workflow_runs[1].id, 987_654_321);
         assert_eq!(response.workflow_runs[1].conclusion, None);
     }
 
@@ -331,11 +331,11 @@ mod tests {
         let response: JobsResponse = serde_json::from_str(json).unwrap();
 
         assert_eq!(response.jobs.len(), 2);
-        assert_eq!(response.jobs[0].id, 123456789);
+        assert_eq!(response.jobs[0].id, 123_456_789);
         assert_eq!(response.jobs[0].name, "build");
         assert_eq!(response.jobs[0].status, "completed");
         assert_eq!(response.jobs[0].conclusion, Some("success".to_string()));
-        assert_eq!(response.jobs[1].id, 987654321);
+        assert_eq!(response.jobs[1].id, 987_654_321);
         assert_eq!(response.jobs[1].name, "test");
     }
 

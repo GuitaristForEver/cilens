@@ -17,6 +17,7 @@ struct CachedWorkflowRun {
 /// Cache for GitHub Actions workflow job data
 #[derive(Debug)]
 pub struct JobCache {
+    #[allow(dead_code)]
     cache_file: PathBuf,
     workflow_runs: HashMap<u64, CachedWorkflowRun>,
     enabled: bool,
@@ -33,7 +34,7 @@ impl JobCache {
     /// * `Result<Self>` - The job cache instance
     pub fn new(repo_path: &str, enabled: bool) -> Result<Self> {
         if !enabled {
-            debug!("Cache disabled for repository {}", repo_path);
+            debug!("Cache disabled for repository {repo_path}");
             return Ok(Self {
                 cache_file: PathBuf::new(),
                 workflow_runs: HashMap::new(),
@@ -48,7 +49,7 @@ impl JobCache {
             .join("github");
 
         // Create cache directory if it doesn't exist
-        fs::create_dir_all(&cache_dir).map_err(|e| crate::error::CILensError::Cache(format!("Failed to create cache directory: {}", e)))?;
+        fs::create_dir_all(&cache_dir).map_err(|e| crate::error::CILensError::Cache(format!("Failed to create cache directory: {e}")))?;
 
         // Create cache file name: replace '/' with '-'
         let cache_file_name = format!("{}.json", repo_path.replace('/', "-"));
@@ -59,29 +60,29 @@ impl JobCache {
             match fs::read_to_string(&cache_file) {
                 Ok(contents) => match serde_json::from_str(&contents) {
                     Ok(data) => {
-                        info!("Loaded cache from {}", cache_file.display());
+                        let display = cache_file.display();
+                        info!("Loaded cache from {display}");
                         data
                     }
                     Err(e) => {
+                        let display = cache_file.display();
                         warn!(
-                            "Failed to parse cache file {}: {}. Starting with empty cache.",
-                            cache_file.display(),
-                            e
+                            "Failed to parse cache file {display}: {e}. Starting with empty cache."
                         );
                         HashMap::new()
                     }
                 },
                 Err(e) => {
+                    let display = cache_file.display();
                     warn!(
-                        "Failed to read cache file {}: {}. Starting with empty cache.",
-                        cache_file.display(),
-                        e
+                        "Failed to read cache file {display}: {e}. Starting with empty cache."
                     );
                     HashMap::new()
                 }
             }
         } else {
-            debug!("No cache file found at {}", cache_file.display());
+            let display = cache_file.display();
+            debug!("No cache file found at {display}");
             HashMap::new()
         };
 
@@ -126,10 +127,10 @@ impl JobCache {
         let cache_file = cache_dir.join(cache_file_name);
 
         if cache_file.exists() {
-            fs::remove_file(&cache_file).map_err(|e| crate::error::CILensError::Cache(format!("Failed to delete cache file: {}", e)))?;
-            info!("Cleared cache for repository {}", repo_path);
+            fs::remove_file(&cache_file).map_err(|e| crate::error::CILensError::Cache(format!("Failed to delete cache file: {e}")))?;
+            info!("Cleared cache for repository {repo_path}");
         } else {
-            debug!("No cache file to clear for repository {}", repo_path);
+            debug!("No cache file to clear for repository {repo_path}");
         }
 
         Ok(())
@@ -139,7 +140,6 @@ impl JobCache {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
 
     #[test]
     fn test_cache_creation() {

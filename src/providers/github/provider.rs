@@ -3,7 +3,7 @@ use crate::error::Result;
 use crate::insights::CIInsights;
 use crate::output::PhaseProgress;
 use chrono::{DateTime, Utc};
-use log::{info, warn};
+use log::info;
 
 use super::cache::JobCache;
 use super::client::GitHubClient;
@@ -11,9 +11,11 @@ use super::types::{GitHubJob, GitHubWorkflowRun};
 
 /// GitHub Actions CI/CD insights provider.
 pub struct GitHubProvider {
+    #[allow(dead_code)]
     pub base_url: String,
     pub owner: String,
     pub repo: String,
+    #[allow(dead_code)]
     pub token: Option<Token>,
     client: GitHubClient,
     cache: JobCache,
@@ -29,7 +31,7 @@ impl GitHubProvider {
         use_cache: bool,
     ) -> Result<Self> {
         let client = GitHubClient::new(base_url, token.clone())?;
-        let repo_path = format!("{}/{}", owner, repo);
+        let repo_path = format!("{owner}/{repo}");
         let cache = JobCache::new(&repo_path, use_cache)?;
 
         Ok(Self {
@@ -59,7 +61,7 @@ impl GitHubProvider {
         branch: Option<&str>,
         created_after: Option<DateTime<Utc>>,
         created_before: Option<DateTime<Utc>>,
-        min_type_percentage: u8,
+        _min_type_percentage: u8,
     ) -> Result<CIInsights> {
         // Phase 1: Fetch workflow runs
         let progress = PhaseProgress::start_phase_1();
@@ -165,8 +167,10 @@ impl GitHubProvider {
             };
 
             // Calculate run duration
-            let run_duration_ms =
-                calculate_duration(run_data.run_started_at.as_deref(), Some(&run_data.updated_at));
+            let run_duration_ms = calculate_duration(
+                run_data.run_started_at.as_deref(),
+                Some(&run_data.updated_at),
+            );
 
             // Transform to GitHubWorkflowRun
             let workflow_run = GitHubWorkflowRun {
@@ -193,7 +197,7 @@ fn calculate_duration(started_at: Option<&str>, completed_at: Option<&str>) -> O
             let start: DateTime<Utc> = start.parse().ok()?;
             let end: DateTime<Utc> = end.parse().ok()?;
             let duration = end.signed_duration_since(start);
-            Some(duration.num_milliseconds() as u64)
+            Some(duration.num_milliseconds().cast_unsigned())
         }
         _ => None,
     }
