@@ -23,7 +23,8 @@
       [
         "core",
         "ci",
-        "gitlab"
+        "gitlab",
+        "github"
       ]
     ],
     "scope-empty": [2, "never"],
