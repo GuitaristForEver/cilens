@@ -5,8 +5,8 @@ use std::path::PathBuf;
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 
-use crate::error::Result;
 use super::types::GitHubJob;
+use crate::error::Result;
 
 /// Internal structure for cached workflow run data
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,12 +44,16 @@ impl JobCache {
 
         // Get cache directory
         let cache_dir = dirs::cache_dir()
-            .ok_or_else(|| crate::error::CILensError::Cache("Could not determine cache directory".to_string()))?
+            .ok_or_else(|| {
+                crate::error::CILensError::Cache("Could not determine cache directory".to_string())
+            })?
             .join("cilens")
             .join("github");
 
         // Create cache directory if it doesn't exist
-        fs::create_dir_all(&cache_dir).map_err(|e| crate::error::CILensError::Cache(format!("Failed to create cache directory: {e}")))?;
+        fs::create_dir_all(&cache_dir).map_err(|e| {
+            crate::error::CILensError::Cache(format!("Failed to create cache directory: {e}"))
+        })?;
 
         // Create cache file name: replace '/' with '-'
         let cache_file_name = format!("{}.json", repo_path.replace('/', "-"));
@@ -74,9 +78,7 @@ impl JobCache {
                 },
                 Err(e) => {
                     let display = cache_file.display();
-                    warn!(
-                        "Failed to read cache file {display}: {e}. Starting with empty cache."
-                    );
+                    warn!("Failed to read cache file {display}: {e}. Starting with empty cache.");
                     HashMap::new()
                 }
             }
@@ -119,7 +121,9 @@ impl JobCache {
     /// * `Result<()>` - Success or error
     pub fn clear_project_cache(repo_path: &str) -> Result<()> {
         let cache_dir = dirs::cache_dir()
-            .ok_or_else(|| crate::error::CILensError::Cache("Could not determine cache directory".to_string()))?
+            .ok_or_else(|| {
+                crate::error::CILensError::Cache("Could not determine cache directory".to_string())
+            })?
             .join("cilens")
             .join("github");
 
@@ -127,7 +131,9 @@ impl JobCache {
         let cache_file = cache_dir.join(cache_file_name);
 
         if cache_file.exists() {
-            fs::remove_file(&cache_file).map_err(|e| crate::error::CILensError::Cache(format!("Failed to delete cache file: {e}")))?;
+            fs::remove_file(&cache_file).map_err(|e| {
+                crate::error::CILensError::Cache(format!("Failed to delete cache file: {e}"))
+            })?;
             info!("Cleared cache for repository {repo_path}");
         } else {
             debug!("No cache file to clear for repository {repo_path}");
@@ -149,7 +155,10 @@ mod tests {
 
         let cache = result.unwrap();
         assert!(cache.enabled);
-        assert!(cache.cache_file.to_string_lossy().contains("owner-repo.json"));
+        assert!(cache
+            .cache_file
+            .to_string_lossy()
+            .contains("owner-repo.json"));
         assert!(cache.workflow_runs.is_empty());
     }
 
@@ -178,10 +187,7 @@ mod tests {
     #[test]
     fn test_clear_project_cache() {
         // Create a temporary cache file
-        let cache_dir = dirs::cache_dir()
-            .unwrap()
-            .join("cilens")
-            .join("github");
+        let cache_dir = dirs::cache_dir().unwrap().join("cilens").join("github");
         fs::create_dir_all(&cache_dir).unwrap();
 
         let test_repo = "test-owner/test-repo";

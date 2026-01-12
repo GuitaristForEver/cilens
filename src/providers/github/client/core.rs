@@ -74,9 +74,7 @@ impl GitHubClient {
         let mut url = self
             .base_url
             .join(&format!("repos/{owner}/{repo}/actions/runs"))
-            .map_err(|e| {
-                crate::error::CILensError::Config(format!("Failed to build URL: {e}"))
-            })?;
+            .map_err(|e| crate::error::CILensError::Config(format!("Failed to build URL: {e}")))?;
 
         // Add query parameters
         url.query_pairs_mut()
@@ -116,10 +114,9 @@ impl GitHubClient {
             )));
         }
 
-        let workflow_response: WorkflowRunsResponse =
-            response.json().await.map_err(|e| {
-                crate::error::CILensError::GitHubApi(format!("Failed to parse response: {e}"))
-            })?;
+        let workflow_response: WorkflowRunsResponse = response.json().await.map_err(|e| {
+            crate::error::CILensError::GitHubApi(format!("Failed to parse response: {e}"))
+        })?;
 
         Ok(workflow_response.workflow_runs)
     }
@@ -133,18 +130,11 @@ impl GitHubClient {
     ///
     /// # Errors
     /// Returns an error if the HTTP request fails or the response cannot be parsed.
-    pub async fn fetch_jobs(
-        &self,
-        owner: &str,
-        repo: &str,
-        run_id: u64,
-    ) -> Result<Vec<JobData>> {
+    pub async fn fetch_jobs(&self, owner: &str, repo: &str, run_id: u64) -> Result<Vec<JobData>> {
         let url = self
             .base_url
             .join(&format!("repos/{owner}/{repo}/actions/runs/{run_id}/jobs"))
-            .map_err(|e| {
-                crate::error::CILensError::Config(format!("Failed to build URL: {e}"))
-            })?;
+            .map_err(|e| crate::error::CILensError::Config(format!("Failed to build URL: {e}")))?;
 
         let mut request = self
             .client
@@ -285,10 +275,16 @@ mod tests {
 
         assert_eq!(response.workflow_runs.len(), 2);
         assert_eq!(response.workflow_runs[0].id, 123_456_789);
-        assert_eq!(response.workflow_runs[0].head_branch, Some("main".to_string()));
+        assert_eq!(
+            response.workflow_runs[0].head_branch,
+            Some("main".to_string())
+        );
         assert_eq!(response.workflow_runs[0].event, "push");
         assert_eq!(response.workflow_runs[0].status, "completed");
-        assert_eq!(response.workflow_runs[0].conclusion, Some("success".to_string()));
+        assert_eq!(
+            response.workflow_runs[0].conclusion,
+            Some("success".to_string())
+        );
         assert_eq!(response.workflow_runs[1].id, 987_654_321);
         assert_eq!(response.workflow_runs[1].conclusion, None);
     }

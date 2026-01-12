@@ -1,10 +1,10 @@
-mod provider;
-mod types;
 mod cache;
 pub mod client;
+mod provider;
+mod types;
 
-pub use provider::GitHubProvider;
 pub use cache::JobCache;
+pub use provider::GitHubProvider;
 
 #[cfg(test)]
 mod tests {

@@ -151,10 +151,16 @@ enum Commands {
         #[arg(long, help = "Filter workflow runs by branch")]
         branch: Option<String>,
 
-        #[arg(long, help = "Fetch workflow runs created after this date (YYYY-MM-DD)")]
+        #[arg(
+            long,
+            help = "Fetch workflow runs created after this date (YYYY-MM-DD)"
+        )]
         created_after: Option<NaiveDate>,
 
-        #[arg(long, help = "Fetch workflow runs created before this date (YYYY-MM-DD)")]
+        #[arg(
+            long,
+            help = "Fetch workflow runs created before this date (YYYY-MM-DD)"
+        )]
         created_before: Option<NaiveDate>,
 
         #[arg(
