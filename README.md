@@ -1,6 +1,6 @@
 # 🔍 CILens - CI/CD Insights Tool
 
-A Rust CLI tool for collecting and analyzing CI/CD insights from GitLab.
+A Rust CLI tool for collecting and analyzing CI/CD insights from GitLab and GitHub Actions.
 
 ![CILens Output](static/output.png)
 
@@ -40,6 +40,8 @@ nix run github:dsalaza4/cilens/v0.7.1 -- --help
 
 ## 🚀 Quick Start
 
+### GitLab
+
 ```bash
 # Get your GitLab token from: https://gitlab.com/-/profile/personal_access_tokens
 # Required scope: read_api
@@ -49,7 +51,46 @@ export GITLAB_TOKEN="glpat-your-token"
 cilens gitlab group/project
 ```
 
+### GitHub Actions
+
+```bash
+# Get your GitHub token from: https://github.com/settings/tokens
+# Required scope: repo (for private repos) or public_repo (for public repos only)
+
+export GITHUB_TOKEN="ghp_your_token"
+
+cilens github owner/repo
+```
+
 ## 💡 Usage
+
+### GitHub Actions
+
+```bash
+# Default: Human-readable summary
+cilens github owner/repo
+
+# Get JSON output for programmatic analysis
+cilens github owner/repo --json > insights.json
+
+# Pretty-printed JSON
+cilens github owner/repo --json --pretty > insights.json
+
+# Fetch fewer workflow runs for faster analysis
+cilens github owner/repo --limit 50
+
+# Filter by branch
+cilens github owner/repo --branch main
+
+# Filter by date range
+cilens github owner/repo --created-after 2025-01-01 --created-before 2025-01-31
+
+# Cache management
+cilens github owner/repo --clear-cache
+cilens github owner/repo --no-cache
+```
+
+### GitLab
 
 ```bash
 # Default: Human-readable summary (displays top issues, optimization targets)
